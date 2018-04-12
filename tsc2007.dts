@@ -1,0 +1,19 @@
+// Enable tsc2007
+/dts-v1/;
+/plugin/;
+
+/{
+	fragment@0 {
+		target = <&i2c1>;
+		__overlay__ {
+			tsc2007: tsc2007 {
+				compatible = "ti,tsc2007";
+				reg = <0x48>;
+				interrupt-parent = <0xb>;
+				interrupts = <0x11 0x8>;
+				gpios = <0xb 0x11 0x00>;
+				ti,x-plate-ohms = <200>;
+			};
+		};
+	};
+};
