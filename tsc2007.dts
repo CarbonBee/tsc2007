@@ -8,12 +8,26 @@
 		__overlay__ {
 			tsc2007: tsc2007 {
 				compatible = "ti,tsc2007";
-				reg = <0x48>;
+				reg = <0>;
 				interrupt-parent = <0xb>;
-				interrupts = <0x11 0x8>;
-				gpios = <0xb 0x11 0x00>;
+				interrupts = <0 0x8>;
+				gpios = <0xb 0 0x00>;
 				ti,x-plate-ohms = <200>;
+				ti,min_x = <0>;
+				ti,max_x = <0>;
+				ti,min_y = <0>;
+				ti,max_y = <0>;
 			};
 		};
+	};
+
+	__overrides__ {
+		min_x = <&tsc2007>,"ti,min_x:0";
+		max_x = <&tsc2007>,"ti,max_x:0";
+		min_y = <&tsc2007>,"ti,min_y:0";
+		max_y = <&tsc2007>,"ti,max_y:0";
+		i2c_addr = <&tsc2007>,"reg:0";
+		gpio_irq = <&tsc2007>,"gpios:4",<&tsc2007>,"interrupts:0";
+		x-plate-ohms = <&tsc2007>,"ti,x-plate-ohms:0";
 	};
 };

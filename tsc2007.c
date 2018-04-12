@@ -80,6 +80,11 @@ struct tsc2007 {
 	int			fuzzy;
 	int			fuzzz;
 
+	int			min_x;
+	int			min_y;
+	int			max_x;
+	int			max_y;
+
 	unsigned		gpio;
 	int			irq;
 
@@ -197,7 +202,6 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 			dev_dbg(&ts->client->dev,
 				"DOWN point(%4d,%4d), pressure (%4u)\n",
 				tc.x, tc.y, rt);
-
 			input_report_key(input, BTN_TOUCH, 1);
 			input_report_abs(input, ABS_X, tc.x);
 			input_report_abs(input, ABS_Y, tc.y);
@@ -234,10 +238,14 @@ static irqreturn_t tsc2007_hard_irq(int irq, void *handle)
 	struct tsc2007 *ts = handle;
 
 	if (tsc2007_is_pen_down(ts))
+	{
 		return IRQ_WAKE_THREAD;
+	}
 
 	if (ts->clear_penirq)
+	{
 		ts->clear_penirq();
+	}
 
 	return IRQ_HANDLED;
 }
@@ -312,6 +320,18 @@ static int tsc2007_probe_dt(struct i2c_client *client, struct tsc2007 *ts)
 	if (!of_property_read_u32(np, "ti,fuzzz", &val32))
 		ts->fuzzz = val32;
 
+	if (!of_property_read_u32(np, "ti,min_y", &val32))
+		ts->min_y = val32;
+
+	if (!of_property_read_u32(np, "ti,min_x", &val32))
+		ts->min_x = val32;
+
+	if (!of_property_read_u32(np, "ti,max_y", &val32))
+		ts->max_y = val32;
+
+	if (!of_property_read_u32(np, "ti,max_x", &val32))
+		ts->max_x = val32;
+
 	if (!of_property_read_u64(np, "ti,poll-period", &val64))
 		ts->poll_period = msecs_to_jiffies(val64);
 	else
@@ -355,6 +375,10 @@ static int tsc2007_probe_pdev(struct i2c_client *client, struct tsc2007 *ts,
 	ts->fuzzx             = pdata->fuzzx;
 	ts->fuzzy             = pdata->fuzzy;
 	ts->fuzzz             = pdata->fuzzz;
+	ts->min_y             = pdata->min_y;
+	ts->min_x             = pdata->min_x;
+	ts->max_y             = pdata->max_y;
+	ts->max_x             = pdata->max_x;
 
 	if (pdata->x_plate_ohms == 0) {
 		dev_err(&client->dev, "x_plate_ohms is not set up in platform data");
@@ -421,8 +445,8 @@ static int tsc2007_probe(struct i2c_client *client,
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 	input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 
-	input_set_abs_params(input_dev, ABS_X, 0, MAX_12BIT, ts->fuzzx, 0);
-	input_set_abs_params(input_dev, ABS_Y, 0, MAX_12BIT, ts->fuzzy, 0);
+	input_set_abs_params(input_dev, ABS_X, ts->min_x, ts->max_x, ts->fuzzx, 0);
+	input_set_abs_params(input_dev, ABS_Y, ts->min_y, ts->max_y, ts->fuzzy, 0);
 	input_set_abs_params(input_dev, ABS_PRESSURE, 0, MAX_12BIT,
 			     ts->fuzzz, 0);
 
